@@ -1,0 +1,47 @@
+# titanic_data
+
+运行结果如图：
+
+http://127.0.0.1:13645/graphics/039b2184-3201-48dd-8547-92435b3a1075.png
+
+http://127.0.0.1:13645/graphics/b63d78cf-ad88-4a84-8f6f-0dd31d4dad9a.png
+
+http://127.0.0.1:13645/graphics/b5898dbc-5a68-42e3-b8ca-523934f1973f.png
+
+http://127.0.0.1:13645/graphics/b371831c-d003-44e5-b847-f09447a5896e.png
+
+http://127.0.0.1:13645/graphics/12eae38e-bf6f-4350-a648-4a8817cf4ab6.png
+
+http://127.0.0.1:13645/graphics/58b6f272-b9b2-49fd-8d2d-4b9f228c6af3.png
+
+http://127.0.0.1:13645/graphics/996fdbbf-b620-45ad-85bf-a8a5aaee7de6.png
+
+http://127.0.0.1:13645/graphics/99fddb4c-8b1a-42fd-ba78-a3ef6acc828f.png
+
+http://127.0.0.1:13645/graphics/fa180b86-a954-4fd8-a348-2d8c12990090.png
+
+http://127.0.0.1:13645/graphics/9942c545-a1b3-4105-a83d-75945ee5dfba.png
+
+http://127.0.0.1:13645/graphics/ed16dfe0-1b2c-4908-8e2f-02ce832eed89.png
+
+# 钻石可视化
+
+运行结果如图：
+
+http://127.0.0.1:13645/graphics/6bc93017-3d05-42d8-814d-4ffc30bcdfe9.png
+
+http://127.0.0.1:13645/graphics/14963dfb-afea-4634-a0f1-db6cc1830a74.png
+
+http://127.0.0.1:13645/graphics/bcc1b405-19ca-4144-ad6d-71895318ef28.png
+
+http://127.0.0.1:13645/graphics/26fcc2e1-4da3-4222-8b6d-cd1d18abdbc5.png
+
+http://127.0.0.1:13645/graphics/705bd517-cdd2-4fd4-9215-e013951aa62b.png
+
+http://127.0.0.1:13645/graphics/c7c18576-cdf7-4f44-a9b2-7a96bf9424ed.png
+
+http://127.0.0.1:13645/graphics/99a8cbff-29c8-4a65-909d-27556c0b7c61.png
+
+# Github地址
+
+仓库地址：https://github.com/dadaduck01/2023_DataScience_Code
