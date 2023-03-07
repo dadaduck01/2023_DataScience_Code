@@ -1,0 +1,278 @@
+---
+title: "Exercise1-Titanic&diamonds visualization-new-tutorial"
+author: "王嘉杰"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+**1.关于R Markdown文件的使用，请参考：https://www.math.pku.edu.cn/teachers/lidf/docs/Rbook/html/_Rbook/rmarkdown.html**     
+**2.这篇tutorial只是修改了原来教学案例里的问题，使得代码运行整体是流畅的。但是这并不意味着这些是好的代码，请只做参考并系统进行后续学习，直到能够自己发现以下代码存在的无数问题。**
+
+## 1 泰坦尼克号灾难分析
+### 1.1 数据读取与观察
+
+```{r warning=FALSE,message=FALSE}
+# 读取实验所需的包
+
+library(colorspace)
+library(grid)
+library(data.table)
+library(VIM)
+library(mice)
+library(ggplot2)
+library(lattice)
+library(caret)
+
+library(dplyr)
+library(stringr)
+```
+
+```{r cache=TRUE}
+# 从kaggle网站上获取数据集：https://www.kaggle.com/c/titanic
+
+titanic<-read.csv("train.csv") # 读取train.csv，与Rmd文件放在同一个文件路径下
+```
+
+```{r cache=TRUE}
+# 查看数据
+# 使用knitr::kable(dataframe)，可以在Knit后让表格变得更加美观
+
+summary(titanic) #population
+knitr::kable(head(titanic)) #top 6
+```
+
+### 1.2 数据处理
+
+```{r cache=TRUE}
+# 数据属性规范
+
+titanic$Pclass <- factor(titanic$Pclass) # 因子类型定义，分类变量
+```
+
+```{r cache=TRUE}
+# 缺失值处理
+
+sum(is.na(titanic$Age))
+sum(is.na(titanic$Cabin))
+sum(is.na(titanic$Embarked))
+```
+
+**需要注意的是，从kaggle下载的数据中，Cabin和Embarked中的缺失值不是NA，而是为空，Age的缺失值显示为NA（NA!=空）。**
+
+```{r cache=TRUE,warning=FALSE}
+# 可视化呈现
+
+NaPlot <- aggr(titanic,
+               col=c("cyan", "red"), 
+               numbers=TRUE, 
+               labels=names(data), 
+               cex.axis=.7, 
+               gap=3, 
+               ylab=c("Histogram  of missing data","Pattern")) #缺失值信息可视化
+```
+
+**因此，可视化中实际只探测到Age属性存在缺失。**
+
+```{r cache=TRUE}
+# 缺失值处理
+# 注意处理Embarked和Age两列缺失的方法的不同
+
+median(titanic$Age,na.rm = T)
+titanic$Age[is.na(titanic$Age)] <- median(titanic$Age,na.rm = T) # 均值插值
+titanic[which(titanic$Embarked == ""),"Embarked"] <- 'S' # 众数插值
+```
+
+### 1.3 探索性分析
+
+```{r cache=TRUE}
+# 划分训练集与测试集
+
+trainid <- createDataPartition(titanic$PassengerId, p = 0.75, list = F) # 划分训练集和测试集，3：1
+
+train <- titanic[trainid,]
+test <- titanic[-trainid,]
+```
+
+```{r cache=TRUE}
+#（1）乘客所坐的船舱是如何影响生还率
+
+Pclass_S <- table(train$Survived, train$Pclass) 
+Pclass_S_prop <- prop.table(Pclass_S, 2) 
+ggplot(data = train, aes(x = as.integer(Pclass), fill = factor(Survived))) +
+  geom_bar(stat='count', position='dodge') + 
+  scale_x_continuous(breaks=c(1:3)) + 
+  labs(x = 'Pclass')
+
+# 查看生还率
+Pclass_S_prop
+```
+
+```{r cache=TRUE}
+#（2）性别：泰坦尼克号上，人们是否也会遵循女士优先的准则呢？
+
+Sex_S <- table(train$Survived, train$Sex)
+Sex_S_prop <- prop.table(Sex_S, 2)
+ggplot(data = train, aes(x = Sex, fill = factor(Survived))) + 
+  geom_bar(stat='count', position='dodge')
+```
+
+```{r cache=TRUE}
+#（3）年龄的影响？
+
+Agedata <- as.numeric(unlist(train$Age))
+Age_Level<-cut(Agedata, breaks = c(0, 15, 30, 45, 60, 75, 90), 
+               labels = c('kids', 'teenagers', 'prime', 'middle', 'agedness', 'senium' ))
+Age_S <- table(train$Survived, Age_Level)
+Age_S_prop <- prop.table(Age_S, 2)
+
+ggplot(data = data.frame(train$Survived, Agedata), 
+       aes(x = cut(Agedata, breaks = c(0, 15, 30, 45, 60, 75, 90)), 
+           fill = factor(train.Survived))) +
+  geom_bar(stat='count', position='dodge') + 
+  labs(x = 'Age') +  
+  scale_x_discrete(labels = c('kids', 'teenagers', 'prime', 'middle', 'agedness', 'senium'))
+```
+
+```{r cache=TRUE}
+#（4） Family
+
+Sibsp_S <- table(train$Survived, train$SibSp)
+Parch_S <- table(train$Survived, train$Parch)
+Sibsp_S_prop <- prop.table(Sibsp_S, 2)
+Parch_S_prop <- prop.table(Parch_S, 2)
+
+ggplot(data = train, aes(x = SibSp, fill = factor(Survived)))+geom_bar(stat='count', position='dodge') + scale_x_continuous(breaks=c(0:8)) + labs(x = 'Sibsp')
+ggplot(data = train, aes(x = Parch, fill = factor(Survived)))+geom_bar(stat='count', position='dodge') + scale_x_continuous(breaks=c(0:6)) + labs(x = 'Parch')
+Families <- train$SibSp +train$Parch
+ggplot(data = train, aes(x = Families, fill = factor(Survived)))+geom_bar(stat='count', position='dodge') + scale_x_continuous(breaks=c(0:10)) + labs(x = 'Families')
+```
+
+```{r cache=TRUE}
+#（5） 现金和港口
+#一个乘客上船时所带的现金，以及他所登船的港口会对他成为幸存者有影响么？这两个看似和成为幸存者毫无关系的因素，可能正从侧面表现出了幸存者所拥有的属性。那么还是首先从简单的单因素统计绘图开始。其中将Fare这一变量分为三个区间，第一个区间为(0, 50]标签为poor，第二个区间为(50, 100]标签为middle，第三个区间为(100, 600]标签为rich。
+
+Faredata <- as.numeric(unlist(train$Fare))
+Fare_S <- table(train$Survived, cut(Faredata, breaks = c(0, 50, 100, 600), labels = c('poor', 'middle', 'rich')))
+Fare_S_prop <- prop.table(Fare_S, 2)
+ggplot(data = data.frame(train$Survived, Faredata), aes(x = cut(Faredata, breaks = c(0, 50, 100, 600)), fill = factor(train.Survived)))+geom_bar(stat='count', position='dodge') + labs(x = 'Fare') +  scale_x_discrete(labels = c('poor', 'middle', 'rich'))
+
+Embarked_S <- table(train$Survived, train$Embarked)
+Embarked_S_prop <- prop.table(Embarked_S, 2)
+ggplot(data = train, aes(x = Embarked, fill = factor(Survived)))+geom_bar(stat='count', position='dodge')
+```
+
+### 1.4 规律揭示或建模
+#### 1.4.1 KNN
+
+**使用knn和随机森林作为参考案例**
+
+```{r cache=TRUE}
+# 数据预处理，特征工程
+
+base <- data.frame(predict(dummyVars(~., data = titanic), titanic)) # 特征工程，将原先的特征扩展到1732维
+knitr::kable(head(base)) #top 6
+
+trainid <- createDataPartition(base$PassengerId, p = 0.75, list = F) # 划分训练集和测试集，3：1
+
+train <- base[trainid,]
+test <- base[-trainid,]
+```
+
+```{r cache=TRUE,warning=FALSE}
+# KNN模型构建
+
+library(class)
+
+knn_model <- knn(train = train[,3:1734], test = test[,3:1734], cl = train[,2], k = 3)
+```
+
+```{r cache=TRUE}
+# KNN模型评估
+
+accuracy <- sum(knn_model == test[,2])/length(knn_model)
+cat("模型的准确率为：", accuracy, "\n") # 计算准确率
+
+# 也可以使用混淆矩阵
+
+confusionMatrix(as.factor(test$Survived), 
+            as.factor(knn_model), 
+            positive = "1")
+```
+
+**我们可以尝试通过调整k值来优化模型的性能。在这个例子中，我们将使用循环来测试k值从1到20的不同值，并计算每个k值的准确率。然后，我们将选择具有最高准确率的k值作为最优k值。**
+
+```{r cache=TRUE}
+# KNN模型优化
+# 测试不同的k值
+
+accuracies <- c()
+for (k in 1:20) {
+  knn_model <- knn(train = train[,3:1734], test = test[,3:1734], cl = train[,2], k = k)
+  accuracy <- sum(knn_model == test[,2])/length(knn_model)
+  accuracies <- c(accuracies, accuracy)
+}
+
+# 选择具有最高准确率的k值
+best_k <- which.max(accuracies)
+cat("最优的k值为：", best_k, "\n")
+cat("最优的准确率为：", accuracies[best_k], "\n")
+```
+
+#### 1.4.2 随机森林模型
+
+```{r cache=TRUE,warning=FALSE}
+# 随机森林模型构建
+
+library(randomForest)
+
+RF <- randomForest(factor(base$Survived) ~ ., data = base, importance = TRUE) # 拟合速度比较慢
+```
+
+```{r cache=TRUE,warning=FALSE}
+# 随机森林模型拟合结果展示
+
+RF_tree <- plot(RF)
+tree <- c(1:500)
+OOB <- data.frame(tree, RF_tree)
+
+ggplot(data = OOB, aes(x = tree)) + 
+  geom_line(aes(y = OOB), colour = "black", linewidth = 0.8) + 
+  geom_line(aes(y = X0), colour = "red", linewidth = 0.8) + 
+  geom_line(aes(y = X1), colour = "green", linewidth = 0.8) + 
+  labs(y = "Error.rate") + 
+  theme_bw()
+```
+
+```{r cache=TRUE}
+# 随机森林模型评估
+
+predict_value <- predict(RF,test)
+
+confusionMatrix(as.factor(test$Survived), 
+            as.factor(predict_value), 
+            positive = "1")
+```
+
+## 2 钻石数据可视化
+
+```{r cache=TRUE,warning=FALSE}
+library(ggthemes)
+
+data(diamonds)
+head(diamonds)
+
+#柱状图
+hist(diamonds$carat,main="Carat Histogram",xlab="Carat")
+
+#散点图
+plot(price~carat,data=diamonds)
+plot(log(price)~log(carat),data=diamonds)
+ggplot(diamonds,aes(x=carat,y=price))+geom_point()
+
+#具有渲染效果的散点图
+ggplot(diamonds,aes(x=carat,y=price))+geom_point(aes(color=color))
+ggplot(diamonds,aes(x=carat,y=price))+geom_point(aes(color=color))+facet_grid(cut~clarity)
+
+#从 ggthemes 提取华尔街日报的图表配色
+ggplot(diamonds,aes(x=carat,y=price))+geom_point(aes(color=color))+theme_wsj()
+```

@@ -1,0 +1,187 @@
+---
+title: "exercise_rmark"
+author: "Wang Meng"
+date: "2023-03-07"
+output: html_document
+---
+
+# 问题一
+
+1. 打印这个数据集
+
+```{r}
+rivers
+```
+
+2. 计算这一数据集的元素个数、平均数、中位数、标准差、方差、最大值、最小值等描述性统计特征
+
+R语言自带的内置基本函数
+
+```{r rivers}
+# 元素个数
+length(rivers)
+```
+
+```{R}
+#  均值
+mean(rivers)
+```
+
+```{R}
+# 中位数
+median(rivers)
+```
+
+```{R}
+# 标准差
+sd(rivers)
+```
+
+```{R}
+# 方差
+var(rivers)
+```
+
+```{R}
+# 最大值
+max(rivers)
+```
+
+```{R}
+# 最小值
+min(rivers)
+```
+
+使用外部包Hmisc
+
+```{R}
+# 使用外部包
+library(Hmisc)
+Hmisc::describe(rivers)
+```
+
+返回的分别是观测的数量，缺失值，唯一值的数目，Info(关于变量的连续性的统计量)，Gmd(基尼均差)，平均值，分位数以及五个最大的值和五个最小的值
+
+3. 将2中的基本函数的计算结果构建成一个名为rivers.Des.1的向量中，打印该向量
+
+```{R}
+# 构建向量
+rivers.Des.1 <- c(length(rivers),mean(rivers),median(rivers),sd(rivers),var(rivers),max(rivers),min(rivers))
+# 打印向量
+rivers.Des.1
+```
+
+4. 将2中的由外部包提供的描述性统计函数的计算结果构建成一个名为rivers.Des.2的数据框（dataframe）中，要求该数据框有两个变量：feature_name（统计指标名称）和value（统计值）。打印该数据框
+
+```{R}
+library(Hmisc)
+d <- Hmisc::describe(rivers)
+d
+# describe函数返回的本身即为数据框
+```
+
+若需要重新构建数据框，则为：
+
+```{R}
+library(Hmisc)
+x <- Hmisc::describe(rivers)
+
+list1 <- x$counts
+list2 <- x$extremes
+
+df <- data.frame(
+  counts=list1[1],
+  missing=list1[2],
+  distinct=list1[3],
+  info=list1[4],
+  mean=list1[5],
+  Gmd=list1[6],
+  five_percent=list1[7],
+  ten_percent=list1[8],
+  twentyfive_percent=list1[9],
+  fifty_percent=list1[10],
+  seventyfive_percent=list1[11],
+  ninty_percent=list1[12],
+  nintyfive_percent=list1[13],
+  lowest5=list2[1:5],
+  high5=list2[6:10]
+)
+df
+```
+
+# 问题二
+
+1. 计算该数据集的行数与列数；
+
+```{R}
+women
+nrow(women)
+ncol(women)
+```
+
+另一种方法：
+
+```{R}
+dim(women)
+```
+
+
+2. 打印该数据集的前6个观测，和最后6个观测
+
+```{R}
+head(women,6)
+tail(women,6)
+```
+
+3. 计算height列的均值和方差
+
+```{R}
+HeightMeans <- colMeans(women)[1]
+HeightMeans
+
+HeightVar <- var(women[1])
+HeightVar
+```
+
+4. 请选择height列的值大于60的行，形成一个新的数据集，名称为women.Height60
+
+```{R}
+height <- women[[1]]
+women.Height60 <- height[which(height > 60)]
+women.Height60
+```
+
+5. 将women数据集转化为一个列表类型的名叫women.list数据，要求列表中包含两个元素，分别是height和weight，打印该列表；
+
+```{R}
+women.list <- list(women[[1]],women[[2]])
+names(women.list) <- c("height","weight")
+women.list
+```
+
+6. 将women数据集转化为一个矩阵类型的名叫women.matrix数据，打印该矩阵和该矩阵的转置矩阵
+
+```{R}
+women.matrix <- as.matrix(women)
+women.matrix
+t(women.matrix)
+```
+
+7. 请使用R自带的cor这一函数，计算women这一数据集height和weight列的相关系数
+
+```{R}
+cor(women)
+```
+
+8. cor这一函数中的一个参数为method，它的取值包括，pearson，kendall，spearman。请简略写下他们之间的区别（不超过100个字）
+
+```{R}
+cor(women, method = "pearson")
+cor(women, method = "kendall")
+cor(women, method = "spearman")
+```
+
+简述：pearson指数用来反映两个变量线性相关程度，绝对值越大表明相关性越强，若>0，则表明两个变量是正相关，两个连续变量间呈线性相关时，使用Pearson指数；spearman指数是衡量两个变量的依赖性的非参数指标，衡量的是变量统计量之间的单调相关关系；适用kendall指数的数据资料一般是采用等级评定的方法收集的，反映了分类变量的相关性，对相关的有序变量进行检验
+
+
+
