@@ -1,0 +1,2 @@
+##Point
+d=data.frame(beauty=c(1,2,6,4,4,6,7,8), intelligence=c(8,4,7,5,4,9,2,3), speed=c(7,6,9,5,7,6,7,8), gender=c('m','m','f','m','f','f','f','m')) ggplot() + scale_size_continuous(to=c(4,12)) + geom_point(data=d, mapping=aes(x=intelligence, y=beauty, shape=gender, color=gender, size=speed)) + opts(title="geom_point", plot.title=theme_text(size=40, vjust=1.5))

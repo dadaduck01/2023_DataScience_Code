@@ -1,0 +1,110 @@
+---
+title: "Exercise3-数据科学与数据分析-20230314"
+author: ""
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1.安装所需要的包：RMySQL
+
+```{r message=FALSE, warning=FALSE}
+# install.packages("RMySQL", repos = "https://mirrors.ustc.edu.cn/CRAN/")
+```
+
+# 2.载入包
+
+```{r message=FALSE, warning=FALSE}
+any(grepl("RMySQL",installed.packages())) # 查看RMySQL是否安装成功
+library(RMySQL)
+```
+
+# 3.连接MySQL数据库
+
+```{r message=FALSE, warning=FALSE}
+# 建立R与MySQL的链接
+mysqlconnection = dbConnect(MySQL(), 
+                            user='root', # MySQL数据库用户名
+                            password='123456', # 对应用户的登录密码
+                            dbname='paper', # 需要连接的数据库名
+                            host='localhost', # 访问的数据库所在的IP
+                            port=3306) # 访问的数据库所关联的端口号，一般为3306
+
+# 查看链接信息
+summary(mysqlconnection)
+
+# 查看该数据库内有哪些表
+dbListTables(mysqlconnection)
+```
+
+# 4.使用R操作MySQL数据库的增删查改
+
+```{r message=FALSE, warning=FALSE}
+# 在R环境中读取数据，为1000条论文文献数据
+paper <- read.csv("paper.csv")
+
+# 打印该数据的前6行
+knitr::kable(head(paper))
+
+# 操作一：在数据库中创建表
+# 利用R的数据框构建数据库的结构
+dbCreateTable(mysqlconnection,"paper",paper) # 新建一张名为paper的表
+dbListTables(mysqlconnection)
+
+# 操作二：向数据表中插入数据
+dbWriteTable(mysqlconnection,"paper",paper,row.names=FALSE,append=TRUE)
+
+# 注意：
+# 如果报错：could not run statement: Loading local data is disabled; this must be enabled on both the client and server sides
+# 需要调整MySQL全局参数，在MySQL中运行sql:set global local_infile=true;
+
+# 操作三：查询,读取paper内的全部数据
+paper_from_mysql = dbGetQuery(mysqlconnection, "select * from paper") # 在双引号内写SQL查询式
+print(dim(paper_from_mysql))
+
+# 注意：
+# 如果报错：connection with pending rows, close resultSet before continuing
+# 执行dbClearResult(dbListResults(连接名)[[1]])，清理查询结果，重新跑
+
+# 操作四：删除表
+dbRemoveTable(mysqlconnection,'paper')
+dbListTables(mysqlconnection)
+```
+
+# 5.关闭连接
+
+```{r message=FALSE, warning=FALSE}
+dbDisconnect(mysqlconnection)
+```
+
+# 6.练习
+
+```{r message=FALSE, warning=FALSE}
+mysqlconnection = dbConnect(MySQL(), 
+                            user='root', # MySQL数据库用户名
+                            password='123456', # 对应用户的登录密码
+                            dbname='paper', # 需要连接的数据库名
+                            host='localhost', # 访问的数据库所在的IP
+                            port=3306) # 访问的数据库所关联的端口号，一般为3306
+
+dbCreateTable(mysqlconnection,"paper",paper)
+dbWriteTable(mysqlconnection,"paper",paper,row.names=FALSE,append=TRUE)
+
+# 筛选paper数据中标题或摘要带有“viruse”关键词的论文数据，在数据库中使用筛选后的数据创建一张新表，新表的名称为paper_viruse，并打印这张表的行数（样本数），以及前6行。
+
+
+
+
+
+
+
+
+
+dbRemoveTable(mysqlconnection,'paper')
+```
+
+

@@ -1,0 +1,38 @@
+---
+title: "dplyr"
+author: "ducks"
+date: "2023-03-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 加载dplyr和ggplot2包
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+```
+
+```{r message=FALSE,warning=FALSE}
+# 使用iris数据集中的数据
+data(iris)
+
+# 计算每个变量的均值
+iris_means <- iris %>% group_by(Species) %>% summarise_all(mean)
+
+# 输出计算的均值点
+knitr::kable(iris_means)
+```
+
+## 使用ggplot2绘制叠加原始数据和均值点的散点图
+
+```{r message=FALSE,warning=FALSE}
+ggplot(iris,aes(x = Sepal.Length, y = Sepal.Width, col = Species)) + # 原始数据的geom_point图层
+  geom_point() +
+  geom_point(data = iris_means, shape = 21, size = 5, fill = "#003f893e")  # 均值点的geom_point图层
+
+
+```

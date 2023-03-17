@@ -1,0 +1,116 @@
+---
+title: "Exercise3_20230314"
+author: "ducks"
+date: "2023-03-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1.安装包：RMySQL
+
+```{r message=FALSE, warning=FALSE}
+# install.packages("RMySQL")
+```
+
+# 2.载入包
+
+```{r message=FALSE, warning=FALSE}
+library(RMySQL)
+```
+
+# 3.连接MySQL数据库
+
+```{r message=FALSE, warning=FALSE}
+# 建立连接
+MySqlConnection = dbConnect(MySQL(),
+                            user = 'root',
+                            password = '123456',
+                            dbname = 'demo',
+                            host = 'localhost')
+
+# 查看信息
+summary(MySqlConnection)
+
+# 查看该数据库内有哪些表
+dbListTables(MySqlConnection)
+```
+
+数据库中原本有一张表：records_1d
+
+# 4.使用R操作MySQL数据库的增删查改
+
+```{r message=FALSE, warning=FALSE}
+# 对表中原有的表：records_1d进行初步的查询操作
+SQLquery <- "select * from records_1d"
+data_from_mysql = dbGetQuery(MySqlConnection, SQLquery)
+
+# 读取paper的数据
+paper <- read.csv("D:/RLanguage/RProject/2023_DataScience_Code/exercise3/paper.csv")
+
+# 打印该数据的前6行
+knitr::kable(head(paper))
+
+# 操作一：在数据库中创建表
+dbCreateTable(MySqlConnection,"paper",paper)  # 新建表
+
+# 操作二：向数据表中插入数据
+dbWriteTable(MySqlConnection,"paper",paper,row.names=FALSE,append=TRUE)
+
+# 报错，调整了MySQL全局参数，在MySQL中运行sql:set global local_infile=true;
+
+# 操作三：查询,读取paper内的全部数据
+SQLquery <- "select * from paper"
+paper_from_mysql = dbGetQuery(MySqlConnection, SQLquery) # 在双引号内写SQL查询式
+print(dim(paper_from_mysql))
+
+# 操作四：删除表
+dbRemoveTable(MySqlConnection,'paper')
+dbListTables(MySqlConnection)
+```
+
+# 5.关闭连接
+
+```{r message=FALSE, warning=FALSE}
+dbDisconnect(MySqlConnection)
+```
+
+# 6.练习
+
+```{r message=FALSE, warning=FALSE}
+MySqlConnection = dbConnect(MySQL(),
+                            user = 'root',
+                            password = '123456',
+                            dbname = 'demo',
+                            host = 'localhost')
+
+dbCreateTable(MySqlConnection,"paper",paper)
+dbWriteTable(MySqlConnection,"paper",paper,row.names=FALSE,append=TRUE)
+
+# 筛选paper数据中标题或摘要带有“virus”关键词的论文数据，在数据库中使用筛选后的数据创建一张新表，新表的名称为paper_virus，并打印这张表的行数（样本数），以及前6行。
+
+# 筛选数据
+sql_sentence <- "SELECT * FROM paper WHERE st_title LIKE '%viruse%' OR st_abstract LIKE '%viruse%'"
+viruse_data_paper <- dbGetQuery(MySqlConnection,sql_sentence)
+dim(viruse_data_paper)
+# 展现数据前六行
+knitr::kable(head(viruse_data_paper))
+
+# 创建表
+dbCreateTable(MySqlConnection,"paper_viruse",viruse_data_paper)
+# 插入数据
+dbWriteTable(MySqlConnection,"paper_viruse",viruse_data_paper,row.names = FALSE,append = TRUE)
+# 新建成功，发现数据库中有三张表格
+dbListTables(MySqlConnection)
+
+# 删除两个新建的表格
+dbRemoveTable(MySqlConnection,'paper')
+dbRemoveTable(MySqlConnection,'paper_viruse')
+# 数据库中仅有原先的records_1d表格
+dbListTables(MySqlConnection)
+
+# 关闭连接
+dbDisconnect(MySqlConnection)
+```

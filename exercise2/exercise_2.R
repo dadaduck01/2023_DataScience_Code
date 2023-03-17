@@ -61,4 +61,16 @@ height <- women[[1]]
 women.Height60 <- height[which(height > 60)]
 women.Height60
 
+women.list <- list(women[[1]],women[[2]])
+names(women.list) <- c("height","weight")
+women.list
 
+women.matrix <- as.matrix(women)
+women.matrix
+t(women.matrix)
+
+cor(women)
+
+cor(women, method = "pearson")
+cor(women, method = "kendall")
+cor(women, method = "spearman")
